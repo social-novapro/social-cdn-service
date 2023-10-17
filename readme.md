@@ -18,6 +18,13 @@ https://uploadcare.com/blog/html-file-upload-button/
 
 https://blog.logrocket.com/how-to-build-file-upload-service-vanilla-javascript/
 
+# To start up
+```
+docker run -p 9000:9000 -p 9090:9090 -v ~/minio/data:/data quay.io/minio/minio server /data --console-address ":9090"
+
+docker run -id -p 9000:9000 -p 9090:9090  -e MINIO_ROOT_USER=user -e MINIO_ROOT_PASSWORD=pass -v ~/minio/data:/data --name minio-container quay.io/minio/minio server /data --console-address ":9090"
+```
+
 
 
 ## Version History
@@ -27,3 +34,7 @@ https://blog.logrocket.com/how-to-build-file-upload-service-vanilla-javascript/
 - basic home directory
 - working docker-compose file for creating a minio server
 - currently working on the upload function (not done)
+
+### 1.0 (2.2023.10.16)
+- Added new docker line to start up minio server with username and password on server PC
+- Project is not to be ran independently, will be included into API (currently, could change)
