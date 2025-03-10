@@ -1,4 +1,4 @@
-# Test Minio S3 Storage Project
+# Social CDN Service
 Created by Daniel Kravec, on November 15, 2022
 
 ## Description
@@ -42,3 +42,9 @@ docker run -id -p 9000:9000 -p 9090:9090  -e MINIO_ROOT_USER=user -e MINIO_ROOT_
 ### 1.0 (3.2025.02.10)
 - Updated packages
 - File upload working, and video uploading working
+
+### 1.0 (4.2025.02.10)
+- Set up project to have standard interact backend file structure
+- Can upload and get media
+- Frontend gets media from backend after successful upload
+- Renamed from Test Minio S3 Storage Project to Social CDN Service

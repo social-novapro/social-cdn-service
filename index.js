@@ -2,9 +2,9 @@ var Minio = require('minio')
 const express = require('express')
 const cors = require('cors');
 const multer = require('multer');
-const app = express()
-const port = 3000
-require('dotenv').config()
+const app = express();
+const port = 3000;
+require('dotenv').config();
 
 var minioClient = new Minio.Client({
     endPoint: 'localhost',
@@ -35,6 +35,7 @@ app.post('/fileupload', upload.single('file'), (req, res) => {
         if (err) {
             return res.status(500).send(err);
         }
+        
         console.log('File uploaded successfully. ETag: ', etag);
         res.send('File uploaded successfully.');
     });
