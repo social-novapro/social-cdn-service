@@ -1,31 +1,34 @@
-// openitnow();
-// async function openitnow() {
-//     await fetch('http://localhost:9000/', {
-//         method: 'POST',
-//     });
-// }
-
 const file = document.getElementById('file');
 const upload = document.getElementById('upload');
 const status = document.getElementById('status');
-upload.addEventListener('click',async () => {
-    await readTheFile();
+
+upload.addEventListener('click', async () => {
+    await uploadFile();
     console.log('clicked the upload button!');
 });
 
-async function readTheFile() {
-    
-    const fileReader = new FileReader(); // initialize the object  
-    fileReader.readAsArrayBuffer(file); // read file as array buffer
-
+async function uploadFile() {
     const selectFile = file.files[0];
-    console.log(selectFile)
-    const fileBuffer = await fileReader.readAsArrayBuffer(selectFile);
-    await fetch('http://localhost:9000/', {
-        method: 'POST',
-        body: {
-            "file": fileBuffer
-        }
-    });
+    if (!selectFile) {
+        console.error('No file selected');
+        return;
+    }
 
+    const formData = new FormData();
+    formData.append('file', selectFile);
+
+    try {
+        const response = await fetch('http://localhost:3000/fileupload', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            console.log('File uploaded successfully.');
+        } else {
+            console.error('File upload failed.');
+        }
+    } catch (error) {
+        console.error('Error uploading file:', error);
+    }
 }

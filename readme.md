@@ -22,7 +22,7 @@ https://blog.logrocket.com/how-to-build-file-upload-service-vanilla-javascript/
 ```
 docker run -p 9000:9000 -p 9090:9090 -v ~/minio/data:/data quay.io/minio/minio server /data --console-address ":9090"
 
-docker run -id -p 9000:9000 -p 9090:9090  -e MINIO_ROOT_USER=user -e MINIO_ROOT_PASSWORD=pass -v ~/minio/data:/data --name minio-container quay.io/minio/minio server /data --console-address ":9090"
+docker run -id -p 9000:9000 -p 9090:9090  -e MINIO_ROOT_USER=user -e MINIO_ROOT_PASSWORD=password -v ~/minio/data:/data --name minio-container quay.io/minio/minio server /data --console-address ":9090"
 ```
 
 
@@ -38,3 +38,7 @@ docker run -id -p 9000:9000 -p 9090:9090  -e MINIO_ROOT_USER=user -e MINIO_ROOT_
 ### 1.0 (2.2023.10.16)
 - Added new docker line to start up minio server with username and password on server PC
 - Project is not to be ran independently, will be included into API (currently, could change)
+
+### 1.0 (3.2025.02.10)
+- Updated packages
+- File upload working, and video uploading working
