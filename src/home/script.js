@@ -19,7 +19,7 @@ async function uploadFile() {
     formData.append('file', selectFile);
 
     try {
-        const response = await fetch('http://localhost:3000/v1/upload', {
+        const response = await fetch('http://localhost:5005/v1/video/', {
             method: 'POST',
             body: formData
         });
@@ -67,7 +67,13 @@ function displayFile(fileURL, mimeType) {
         iframe.width = '100%';
         iframe.height = '600px';
         fileContainer.appendChild(iframe);
-    } else {
+    } else if (mimeType.startsWith('video/')) {
+        const video = document.createElement('video');
+        video.src = fileURL;
+        video.width = '100%';
+        video.controls = true;
+        fileContainer.appendChild(video);
+    }else{
         const a = document.createElement('a');
         a.href = fileURL;
         a.textContent = 'Download File';

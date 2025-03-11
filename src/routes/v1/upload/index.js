@@ -8,14 +8,7 @@ const upload = multer({ storage: storage });
 
 router.post('/', upload.single('file'), async (req, res) => {
     const headers = reqToHeaders(req);
-
-    const result = await uploadFile(req.file, headers)
-
-    console.log('result:', result);
-    if (result.error) {
-        return res.status(500).send(result);
-    }
-    return res.send(result);
+    uploadFile(req.file, headers, res)
 });
 
 module.exports = router;

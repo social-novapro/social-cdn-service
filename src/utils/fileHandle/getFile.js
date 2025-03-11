@@ -1,8 +1,8 @@
 const { minioClient } = require("../minio");
 
-async function getFile(fileID, headers) {
+async function getFile(fileID, headers, bucket = 'interact') {
     return new Promise((resolve, reject) => {
-        minioClient.getObject('interact', fileID, (err, dataStream) => {
+        minioClient.getObject(bucket, fileID, (err, dataStream) => {
             if (err) {
                 return reject({ error: err });
             }

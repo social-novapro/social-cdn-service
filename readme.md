@@ -18,12 +18,30 @@ https://uploadcare.com/blog/html-file-upload-button/
 
 https://blog.logrocket.com/how-to-build-file-upload-service-vanilla-javascript/
 
-# To start up
+# To start up minio
 ```
 docker run -p 9000:9000 -p 9090:9090 -v ~/minio/data:/data quay.io/minio/minio server /data --console-address ":9090"
 
 docker run -id -p 9000:9000 -p 9090:9090  -e MINIO_ROOT_USER=user -e MINIO_ROOT_PASSWORD=password -v ~/minio/data:/data --name minio-container quay.io/minio/minio server /data --console-address ":9090"
 ```
+
+# Running 
+- 
+
+### Production
+```
+docker build -t novapro/interact_cdn_service . && docker tag novapro/interact_cdn_service registry.xnet.com:5000/novapro/interact_cdn_service:latest && docker push registry.xnet.com:5000/novapro/interact_cdn_service
+```
+
+### Locally
+```
+npm start
+```
+```
+docker build -t novapro/interact_cdn_service . && docker run -p 5005:5005 novapro/interact_cdn_service
+```
+check out 
+http://localhost:5004/v1/serverStatus
 
 
 
@@ -39,11 +57,11 @@ docker run -id -p 9000:9000 -p 9090:9090  -e MINIO_ROOT_USER=user -e MINIO_ROOT_
 - Added new docker line to start up minio server with username and password on server PC
 - Project is not to be ran independently, will be included into API (currently, could change)
 
-### 1.0 (3.2025.02.10)
+### 1.0 (3.2025.03.10) -- (commited as 3.2025.02.10) 
 - Updated packages
 - File upload working, and video uploading working
 
-### 1.0 (4.2025.02.10)
+### 1.0 (4.2025.03.10) -- (commited as 4.2025.02.10) 
 - Set up project to have standard interact backend file structure
 - Can upload and get media
 - Frontend gets media from backend after successful upload
