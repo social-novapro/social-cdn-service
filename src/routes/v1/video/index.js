@@ -20,57 +20,58 @@ const videoUpload = multer({ storage: multer.diskStorage({
     filename: (req, file, cb) => cb(null, `${UUIDv4()}.${file.originalname.split('.').pop()}`)
 })});
 
-router.post('/', videoUpload.single('file'), async (req, res) => {
+router.post('/', videoUpload.single('file'), (req, res) => {
     const filePath = req.file.path;
     const fileName = req.file.filename;
 
     console.log(filePath, fileName);
 
     try {
-        await uploadVideoToMinio(filePath, fileName);
-        res.send({ success: true, fileID: fileName });
+        uploadVideoToMinio(filePath, fileName, res);
     } catch (err) {
         console.log(err)
         res.status(500).send({ error: err.message });
     }
 });
 
-router.get('/:fileID', async (req, res) => {
+router.get('/:fileID', (req, res) => {
     const headers = reqToHeaders(req);
     const fileID = req.params.fileID;
     const range = req.headers.range;
 
     if (!range) {
-        const foundFile = await getFile(fileID, headers, 'interact-videos');
-        return res.send(foundFile);
+        console.log("No range given");
+        return getFile(fileID, headers, 'interact-videos', res);
     }
 
     try {
-        const stat = await minioClient.statObject('interact-videos', fileID);
-        const fileSize = stat.size;
+        minioClient.statObject('interact-videos', fileID, (err, stat) => {
+            const fileSize = stat.size;
 
-        const CHUNK_SIZE = 10 ** 6; // 1MB
-        const start = Number(range.replace(/\D/g, ""));
-        const end = Math.min(start + CHUNK_SIZE, fileSize - 1);
-        const contentLength = end - start + 1;
-        const type = mime.lookup(fileID) || 'video/mp4';
-        console.log(type)
-        res.writeHead(206, {
-            "Transfer-Encoding": "chunked",
-            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-            "Accept-Ranges": "bytes",
-            "Content-Length": contentLength,
-            "Content-Type": type,
-            "Cache-Control": "no-store"
-        });
+            const CHUNK_SIZE = 10 ** 6; // 1MB
+            const start = Number(range.replace(/\D/g, ""));
+            const end = Math.min(start + CHUNK_SIZE, fileSize - 1);
+            const contentLength = end - start + 1;
+            const type = mime.lookup(fileID) || 'video/mp4';
+            console.log(type)
+            res.writeHead(206, {
+                "Transfer-Encoding": "chunked",
+                "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+                "Accept-Ranges": "bytes",
+                "Content-Length": contentLength,
+                "Content-Type": type,
+                "Cache-Control": "no-store"
+            });
 
-        const stream = await minioClient.getObject('interact-videos', fileID);
-        stream.on('data', (chunk) => {
-            res.write(chunk);
-            console.log(chunk)
+            minioClient.getObject('interact-videos', fileID, (err, stream) => {
+                stream.on('data', (chunk) => {
+                    res.write(chunk);
+                    console.log(chunk)
+                });
+                stream.on('end', () => res.end());
+                stream.on('error', (err) => res.status(500).send(err));
+            });
         });
-        stream.on('end', () => res.end());
-        stream.on('error', (err) => res.status(500).send(err));
 
     } catch (err) {
         res.status(500).send({ error: err.message });

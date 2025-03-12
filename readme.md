@@ -47,6 +47,8 @@ docker build -t novapro/interact_cdn_service . && docker tag novapro/interact_cd
 npm start
 ```
 ```
+docker stop interact_cdn_service && docker rm interact_cdn_service && docker build -t interact_cdn_service . && docker run --name interact_cdn_service -p 5005:5005 interact_cdn_service
+
 docker build -t novapro/interact_cdn_service . && docker run -p 5005:5005 novapro/interact_cdn_service
 ```
 check out 

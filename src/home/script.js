@@ -28,7 +28,7 @@ async function uploadFile() {
             console.log('File uploaded successfully.');
             const finalRes = await response.json();
             console.log('finalRes:', finalRes);
-            await getFile(finalRes.fileID);
+            // await getFile(finalRes.fileID);
         } else {
             console.error('File upload failed.');
         }

@@ -1,25 +1,24 @@
 const { minioClient } = require("../minio");
 
-async function getFile(fileID, headers, bucket = 'interact') {
-    return new Promise((resolve, reject) => {
-        minioClient.getObject(bucket, fileID, (err, dataStream) => {
-            if (err) {
-                return reject({ error: err });
-            }
+function getFile(fileID, headers, bucket = 'interact', res) {
+    minioClient.getObject(bucket, fileID, (err, dataStream) => {
+        if (err) {
+            return reject({ error: err });
+        }
 
-            let data = [];
-            dataStream.on('data', (chunk) => {
-                data.push(chunk);
-            });
+        let data = [];
+        dataStream.on('data', (chunk) => {
+            data.push(chunk);
+        });
 
-            dataStream.on('end', () => {
-                const fileBuffer = Buffer.concat(data);
-                resolve({ success: true, file: fileBuffer });
-            });
+        dataStream.on('end', () => {
+            const fileBuffer = Buffer.concat(data);
+            resolve({ success: true, file: fileBuffer });
+            return res.send(fileBuffer);
+        });
 
-            dataStream.on('error', (err) => {
-                reject({ error: err });
-            });
+        dataStream.on('error', (err) => {
+            return res.send({ error: err });
         });
     });
 }

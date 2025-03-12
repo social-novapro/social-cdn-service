@@ -2,7 +2,7 @@ const {v4: UUIDv4} = require('uuid');
 const {verifyFile} = require('./verifyFile');
 const { minioClient } = require('../minio');
 
-function uploadFile(file, headers, res) {
+function uploadImage(file, headers, res) {
     const fileBuffer = file.buffer;
     const originalFilename = file.originalname;
     const uuid = UUIDv4();
@@ -26,4 +26,4 @@ function uploadFile(file, headers, res) {
     // });
 }
 
-module.exports = {uploadFile};
+module.exports = {uploadImage};
