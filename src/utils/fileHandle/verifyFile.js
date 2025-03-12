@@ -23,7 +23,10 @@ const allowedExtensions = [{
 
 function verifyFile(file, extension, subType="any") {
     if (!file) {
-        return false;
+        return {
+            "error" : true,
+            "message" : "No file provided"
+        };
     } 
 
     const typeMatch = allowedExtensions.find((allowedExtension) => {
@@ -31,10 +34,16 @@ function verifyFile(file, extension, subType="any") {
     });
 
     if (!typeMatch) {
-        return false;
+        return {
+            "error" : true,
+            "message" : "Invalid file type"
+        };
     }
 
-    return true;
+    return {
+        "error" : false,
+        "type" : typeMatch.subType
+    };
 }
 
 module.exports = {verifyFile};

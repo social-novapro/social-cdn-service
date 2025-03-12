@@ -33,29 +33,36 @@ router.post('/', videoUpload.single('file'), (req, res) => {
         res.status(500).send({ error: err.message });
     }
 });
-
-router.get('/:fileID', (req, res) => {
-    const headers = reqToHeaders(req);
+router.get('/:fileID', async (req, res) => {
     const fileID = req.params.fileID;
     const range = req.headers.range;
+    console.log("Request Headers:", req.headers);
+
 
     if (!range) {
         console.log("No range given");
-        return getFile(fileID, headers, 'interact-videos', res);
+        return res.status(400).send("Requires Range header");
     }
 
     try {
         minioClient.statObject('interact-videos', fileID, (err, stat) => {
-            const fileSize = stat.size;
+            if (err) {
+                console.error("MinIO statObject error:", err);
+                return res.status(500).send({ error: "Could not retrieve file info" });
+            }
 
+            const fileSize = stat.size;
             const CHUNK_SIZE = 10 ** 6; // 1MB
-            const start = Number(range.replace(/\D/g, ""));
-            const end = Math.min(start + CHUNK_SIZE, fileSize - 1);
+            const [startStr, endStr] = range.replace(/bytes=/, "").split("-");
+            const start = parseInt(startStr, 10);
+            let end = endStr ? parseInt(endStr, 10) : start + CHUNK_SIZE - 1;
+            end = Math.min(end, fileSize - 1); // Ensure end is within bounds
             const contentLength = end - start + 1;
             const type = mime.lookup(fileID) || 'video/mp4';
-            console.log(type)
+
+            console.log(`Serving ${fileID}: ${start}-${end}/${fileSize}`);
+
             res.writeHead(206, {
-                "Transfer-Encoding": "chunked",
                 "Content-Range": `bytes ${start}-${end}/${fileSize}`,
                 "Accept-Ranges": "bytes",
                 "Content-Length": contentLength,
@@ -63,20 +70,44 @@ router.get('/:fileID', (req, res) => {
                 "Cache-Control": "no-store"
             });
 
+            // ✅ Correct way to stream only required range
             minioClient.getObject('interact-videos', fileID, (err, stream) => {
-                stream.on('data', (chunk) => {
-                    res.write(chunk);
-                    console.log(chunk)
+                if (err) {
+                    console.error("MinIO getObject error:", err);
+                    return res.status(500).send({ error: "Could not retrieve file content" });
+                }
+
+                let bytesSent = 0;
+                stream.on("data", (chunk) => {
+                    if (bytesSent < contentLength) {
+                        const remaining = contentLength - bytesSent;
+                        const chunkToSend = chunk.slice(0, remaining);
+                        res.write(chunkToSend);
+                        bytesSent += chunkToSend.length;
+                    }
+
+                    if (bytesSent >= contentLength) {
+                        stream.destroy(); // Stop reading once enough bytes sent
+                        res.end();
+                    }
                 });
-                stream.on('end', () => res.end());
-                stream.on('error', (err) => res.status(500).send(err));
+
+                stream.on("end", () => res.end());
+                stream.on("error", (err) => {
+                    console.error("Stream error:", err);
+                    res.status(500).send(err);
+                });
             });
         });
 
     } catch (err) {
+        console.error("Unexpected error:", err);
         res.status(500).send({ error: err.message });
     }
 });
 
 
+
 module.exports = router;
+
+//curl -v -H "Range: bytes=0-999999" http://localhost:5005/v1/video/8f958fe2-0e8a-42f6-a9e9-abab8d54aac2.mov
