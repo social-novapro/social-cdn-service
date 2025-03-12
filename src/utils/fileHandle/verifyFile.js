@@ -21,18 +21,18 @@ const allowedExtensions = [{
     "subType" : "video"
 }];
 
-function verifyFile(file, extension, subType="any") {
-    if (!file) {
+function verifyFile(fileName, subType="any") {
+    if (!fileName) {
         return {
             "error" : true,
-            "message" : "No file provided"
+            "message" : "No file name provided"
         };
     } 
-
+    const extension = fileName.split('.').pop();
     const typeMatch = allowedExtensions.find((allowedExtension) => {
-        return allowedExtension.extension === extension && subType != "any" ? allowedExtension.subType === subType : true;
+        return allowedExtension.extension === extension;
     });
-
+    
     if (!typeMatch) {
         return {
             "error" : true,
@@ -40,6 +40,14 @@ function verifyFile(file, extension, subType="any") {
         };
     }
 
+    if (subType != "any" && typeMatch.subType != subType) {
+        return {
+            "error" : true,
+            "message" : "Invalid file type"
+        };
+    }
+
+    console.log("File type verified:", typeMatch.subType);
     return {
         "error" : false,
         "type" : typeMatch.subType

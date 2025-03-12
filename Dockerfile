@@ -1,5 +1,9 @@
 FROM node:20
 
+# Install FFmpeg dependencies
+RUN apt-get update && \
+    apt-get install -y ffmpeg
+
 # Create app directory
 WORKDIR /usr/src/app
 

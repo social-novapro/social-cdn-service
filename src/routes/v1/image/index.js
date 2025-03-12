@@ -2,24 +2,21 @@ const router = require('express').Router();
 const multer = require('multer');
 const { uploadImage } = require('../../../utils/fileHandle/uploadFile');
 const { reqToHeaders } = require('../../../utils/reqToHeaders');
+const { getFile } = require('../../../utils/fileHandle/getFile');
 
 // Multer storage for images (memory)
 const imageUpload = multer({ storage: multer.memoryStorage() });
 
-router.post('/', imageUpload.single('file'), (req, res) => {
+router.post('/', imageUpload.single('file'), async (req, res) => {
     const headers = reqToHeaders(req);
-    uploadImage(req.file, headers, res);
+    await uploadImage(req.file, headers, res);
 });
 
 router.get('/:fileID', async (req, res) => {
     const fileID = req.params.fileID;
+    const headers = reqToHeaders(req);
 
-    minioClient.getObject('interact-images', fileID, (err, dataStream) => {
-        if (err) return res.status(500).send({ error: err.message });
-
-        res.setHeader('Content-Type', mime.lookup(fileID) || 'application/octet-stream');
-        dataStream.pipe(res);
-    });
+    await getFile(fileID, headers, 'interact-images', res);
 });
 
 module.exports = router;

@@ -2,6 +2,7 @@
 const router = require('express').Router();
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const aws4 = require('aws4');
+const { verifyFile } = require('../../../utils/fileHandle/verifyFile');
 require('dotenv').config();
 
 // Middleware to add MinIO authentication
@@ -31,14 +32,12 @@ const proxyWithAuth = (bucket) => createProxyMiddleware({
     }
 });
 
-router.use("/video/:fileID", (req, res, next) => {
-    console.log("Proxy middleware running for video...");
-
+function signAccess(headers, filePath) {
     // Generate AWS Signature v4 headers
     const opts = {
         method: "GET",
         host: 'localhost:9000',
-        path: `/interact-videos/${req.params.fileID}`,
+        path: filePath,
         service: 's3',
         region: 'us-east-1',
         headers: {
@@ -54,17 +53,36 @@ router.use("/video/:fileID", (req, res, next) => {
     // Apply signed headers to the request
     Object.keys(opts.headers).forEach((key) => {
     // proxyReq.setHeader(key, opts.headers[key]);
-        req.headers[key] = opts.headers[key];
+        headers[key] = opts.headers[key];
     });
 
+    return headers;
+}
+router.use("/video/:fileID", async (req, res, next) => {
+    console.log("Proxy middleware running for video...");
+    req.headers = signAccess(req.headers, `/interact-videos/${req.params.fileID}`);
     console.log("Request Headers:", req.headers);
     next();
 }, proxyWithAuth("interact-videos"));
 
-router.use("/image/:fileID", (req, res, next) => {
+router.use("/image/:fileID", async (req, res, next) => {
     console.log("Proxy middleware running for image...");
+    req.headers = signAccess(req.headers, `/interact-images/${req.params.fileID}`);
+
     next();
 }, proxyWithAuth("interact-images"));
+
+router.use("/:fileID", async (req, res, next) => {
+    console.log("Proxy middleware running for file...");
+    const fileType = verifyFile(req.params.fileID);
+    console.log(fileType);
+    if (fileType.error) {
+        return res.status(500).send(fileType);
+    }
+    req.headers = signAccess(req.headers, `/interact-${fileType.type}s/${req.params.fileID}`);
+    req.bucket = `interact-${fileType.type}s`;
+    next();
+}, (req, res, next) => proxyWithAuth(req.bucket)(req, res, next));
 
 module.exports = router;
 /*

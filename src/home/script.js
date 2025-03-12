@@ -9,7 +9,7 @@ uploadButton.addEventListener('click', async () => {
 });
 
 async function uploadFile() {
-    const selectFile = fileInput.files[0];
+    const selectFile = fileInput.files[fileInput.files.length-1];
     if (!selectFile) {
         console.error('No file selected');
         return;
@@ -19,7 +19,15 @@ async function uploadFile() {
     formData.append('file', selectFile);
 
     try {
-        const response = await fetch('http://localhost:5005/v1/video/', {
+        const toUploadFile = await fetch('http://localhost:5005/v1/fileType/' + selectFile.name);
+        const fileType = await toUploadFile.json();
+        console.log(fileType);
+        if (fileType.error) {
+            console.error('Error verifying file:', fileType.error);
+            return;
+        }
+        
+        const response = await fetch('http://localhost:5005/v1/'+fileType.type, {
             method: 'POST',
             body: formData
         });
