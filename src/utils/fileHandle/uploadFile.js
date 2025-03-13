@@ -2,6 +2,8 @@ const { v4: UUIDv4 } = require('uuid');
 const sharp = require('sharp');
 const { verifyFile } = require('./verifyFile');
 const { minioClient } = require('../minio');
+const { saveFileData } = require('../saveMongo');
+const imageInteractBucket = "interact-images";
 
 async function uploadImage(file, headers, res) {
     const fileBuffer = file.buffer;
@@ -20,10 +22,23 @@ async function uploadImage(file, headers, res) {
             .resize({ width: 1920, height: 1080, fit: 'inside' }) // Fit within 1080p
             .toBuffer();
 
-        await minioClient.putObject('interact-images', newFileName, resizedBuffer, resizedBuffer.length);
-        res.send({ success: true, fileID: newFileName });
+        await minioClient.putObject(imageInteractBucket, newFileName, resizedBuffer, resizedBuffer.length);
+        await saveFileData({
+            fileID: uuid,
+            userID: headers.userID,
+            fileName: newFileName,
+            originalFilename,
+            fileExtension: extension,
+            fileType: "image",
+            interactCdnURL: `/static/${newFileName}`,
+            interactCdnBucket: imageInteractBucket
+        });
+
+        res.send({ success: true, fileID: newFileName, cdnURL: `/static/${newFileName}` });
     } catch (err) {
-        res.status(500).send({ error: err.message || 'Error processing image' });
+        console.log("Error uploading image:", err);
+
+        res.status(500).send({ error: "Error uploading image, please try again later." });
     }
 }
 

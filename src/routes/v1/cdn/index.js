@@ -58,6 +58,7 @@ function signAccess(headers, filePath) {
 
     return headers;
 }
+
 router.use("/video/:fileID", async (req, res, next) => {
     console.log("Proxy middleware running for video...");
     req.headers = signAccess(req.headers, `/interact-videos/${req.params.fileID}`);

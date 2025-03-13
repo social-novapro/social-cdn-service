@@ -17,7 +17,10 @@ async function getFile(fileID, headers, bucket = 'interact', res) {
         });
 
         dataStream.on('error', (err) => {
-            res.send({ error: err });
+            console.error("Error getting image:", err);
+            res.status(500).send({ error: "Error getting image, please try again later." });
+            // res.send({ error: err });
+
         });
     } catch (err) {
         res.send({ error: err });

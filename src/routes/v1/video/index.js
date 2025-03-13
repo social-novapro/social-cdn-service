@@ -48,6 +48,7 @@ function getVideoResolution(filePath) {
 router.post('/', videoUpload.single('file'), async (req, res) => {
     const filePath = req.file.path;
     const fileName = req.file.filename;
+    const headers = reqToHeaders(req);
 
     console.log(filePath, fileName);
 
@@ -62,10 +63,11 @@ router.post('/', videoUpload.single('file'), async (req, res) => {
 
     const resolution = await getVideoResolution(filePath);
     try {
-        await uploadVideoToMinio(filePath, fileName, res, resolution);
+        await uploadVideoToMinio(filePath, fileName, res, resolution, headers, req.file.originalname);
     } catch (err) {
         console.log("err:" + err);
-        res.status(500).send({ error: err.message });
+        console.log("Error uploading video:", err);
+        res.status(500).send({ error: "Could not upload video, please try again later." });
     }
 });
 

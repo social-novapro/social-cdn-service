@@ -2,12 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const { minioClient } = require("../../minio");
+const { saveFileData } = require('../../saveMongo');
+const videoInteractBucket = "interact-videos";
 
-async function uploadVideoToMinio(filePath, fileName, res, metadata) {
-    const fileStream = fs.createReadStream(filePath);
+async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, originalFilename) {
+    // const fileStream = fs.createReadStream(filePath);
     const tempFilePath = path.join("/tmp/uploads", `resized_${fileName}`);
     // const oldX = fileStream.
-    console.log(metadata)
 
     // const newX = ÷
     const horizionOrVertical = metadata.width > metadata.height ? "horizontal" : "vertical";
@@ -18,14 +19,14 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata) {
 
     if (horizionOrVertical === "vertical") {
         newX = BASE_RES;
-        newY = Math.round((metadata.height / metadata.width) * BASE_RES);
+        newY = `trunc(${Math.round((metadata.height / metadata.width) * BASE_RES)}/2)*2`;
     } else {
-        newX = Math.round((metadata.width / metadata.height) * BASE_RES);
+        newX = `trunc(${Math.round((metadata.width / metadata.height) * BASE_RES)}/2)*2`;
         newY = BASE_RES;
     }
 
     try {
-        const resizeCommand = `ffmpeg -i ${filePath} -vf scale=${newX}:${newY} -c:a copy ${tempFilePath}`;
+        const resizeCommand = `ffmpeg -i ${filePath} -vf "scale=${newX}:${newY}" -c:a copy ${tempFilePath}`;
 
         // Run the FFmpeg command to resize the video
         const FFmpegRun = await new Promise((resolve, reject) => {
@@ -39,8 +40,6 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata) {
             });
         });
 
-        console.log(FFmpegRun);
-        
         const stats = await new Promise((resolve, reject) => {
             fs.stat(tempFilePath, (err, stats) => {
                 console.log("failed to stat" + err)
@@ -51,17 +50,9 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata) {
 
         const fileStream = fs.createReadStream(tempFilePath);
 
-        // await new Promise((resolve, reject) => {
-        //     minioClient.putObject('interact-videos', fileName, fileStream, stats.size, (err, etag) => {
-        //         fs.unlink(filePath, () => {}); // Delete temp file
-        //         if (err) return reject(err);
-        //         resolve(etag);
-        //     });
-        // });
-
         // Upload resized video to Minio
         await new Promise((resolve, reject) => {
-            minioClient.putObject('interact-videos', fileName, fileStream, stats.size, (err, etag) => {
+            minioClient.putObject(videoInteractBucket, fileName, fileStream, stats.size, (err, etag) => {
                 fs.unlink(tempFilePath, () => {}); // Delete resized video file
                 fs.unlink(filePath, () => {}); // Delete original video file
                 console.log("failed to minio" + err)
@@ -71,7 +62,18 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata) {
             });
         });
 
-        res.send({ success: true, fileID: fileName });
+        await saveFileData({
+            fileID: fileName.split(".")[0],
+            userID: headers.userID,
+            fileName: fileName,
+            originalFilename,
+            fileExtension: fileName.split(".").pop(),
+            fileType: "video",
+            interactCdnURL: `/static/${fileName}`,
+            interactCdnBucket: videoInteractBucket
+        });
+
+        res.send({ success: true, fileID: fileName, cdnURL: `/static/${fileName}` });
     } catch (err) {
         res.status(500).send({ error: err.message });
     }
