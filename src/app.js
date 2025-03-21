@@ -6,6 +6,7 @@ const config = require('../config.json');
 const PORT = config.PORT;
 const app = express();
 const APIv1 = require('./routes/v1/');
+const multer = require('multer');
 
 require('dotenv').config()
 
@@ -15,6 +16,7 @@ app.use((req, res, next) => {
     next();
 });
 
+// Set up multer to handle large file uploads
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 

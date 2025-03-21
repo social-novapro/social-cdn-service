@@ -19,7 +19,17 @@ async function uploadFile() {
     formData.append('file', selectFile);
 
     try {
-        const toUploadFile = await fetch('http://localhost:5005/v1/fileType/' + selectFile.name);
+        const toUploadFile = await fetch('http://localhost:5005/v1/fileType/' + selectFile.name, {
+            "headers": {
+                "Accept": "*/*",
+                "accesstoken": "d13fc4c0-7566-4704-9850-1eced58b2028",
+                "apptoken": "3610b8af-81c9-4fa2-80dc-2e2d0fd77421",
+                "Content-Type": "application/json",
+                "devtoken": "6292d8ae-8c33-4d46-a617-4ac048bd6f11",
+                "userid": "12bf2cb7-0f22-49ac-930c-3689fcdbcf3f",
+                "usertoken": "77639efe-fcf3-4995-86e2-4cda0073ca75"
+            },
+        });
         const fileType = await toUploadFile.json();
         console.log(fileType);
         if (fileType.error) {
@@ -27,11 +37,20 @@ async function uploadFile() {
             return;
         }
         
-        const response = await fetch('http://localhost:5005/v1/'+fileType.type, {
-            method: 'POST',
-            body: formData
-        });
-
+        const response = await 
+        fetch("http://localhost:5005/v1/cdn/image", {
+            "body": formData,
+            "method": "POST",
+            "headers": {
+                "Accept": "*/*",
+                "accesstoken": "d13fc4c0-7566-4704-9850-1eced58b2028",
+                "apptoken": "3610b8af-81c9-4fa2-80dc-2e2d0fd77421",
+                "Content-Type": "application/json",
+                "devtoken": "6292d8ae-8c33-4d46-a617-4ac048bd6f11",
+                "userid": "12bf2cb7-0f22-49ac-930c-3689fcdbcf3f",
+                "usertoken": "77639efe-fcf3-4995-86e2-4cda0073ca75"
+            },
+        })
         if (response.ok) {
             console.log('File uploaded successfully.');
             const finalRes = await response.json();
@@ -48,6 +67,7 @@ async function uploadFile() {
 async function getFile(fileID) {
     try {
         const response = await fetch(`http://localhost:3000/v1/get/${fileID}`);
+        
         if (response.ok) {
             const fileBlob = await response.blob();
             console.log('file:', fileBlob);

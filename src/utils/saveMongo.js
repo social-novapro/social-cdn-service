@@ -9,7 +9,8 @@ async function saveFileData({
     fileExtension,
     fileType,
     interactCdnURL,
-    interactCdnBucket
+    interactCdnBucket,
+    thumbnailURL,
 }) {
     const saveFile = await interactCdnFile.create({
         _id: fileID,
@@ -20,7 +21,9 @@ async function saveFileData({
         extension: fileExtension,
         type: fileType,
         cdnURL: interactCdnURL,
-        cdnBucket: interactCdnBucket
+        cdnBucket: interactCdnBucket,
+        thumbnailURL: thumbnailURL || null,
+        isThumbnail: thumbnailURL ? true : false,
     });
 
     return saveFile;

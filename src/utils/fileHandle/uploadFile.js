@@ -5,7 +5,7 @@ const { minioClient } = require('../minio');
 const { saveFileData } = require('../saveMongo');
 const imageInteractBucket = "interact-images";
 
-async function uploadImage(file, headers, res) {
+async function uploadImage(file, headers, res, sizeX=1920, sizeY=1080, bucketName=imageInteractBucket) {
     const fileBuffer = file.buffer;
     const originalFilename = file.originalname;
     const uuid = UUIDv4();
@@ -19,10 +19,17 @@ async function uploadImage(file, headers, res) {
 
     try {
         const resizedBuffer = await sharp(fileBuffer)
-            .resize({ width: 1920, height: 1080, fit: 'inside' }) // Fit within 1080p
+            .resize({ width: sizeX, height: sizeY, fit: 'inside' }) // Fit within 1080p
             .toBuffer();
 
-        await minioClient.putObject(imageInteractBucket, newFileName, resizedBuffer, resizedBuffer.length);
+        await minioClient.putObject(bucketName, newFileName, resizedBuffer, resizedBuffer.length);
+
+        // save thumbnail
+        let createdThumbnail;
+        if (bucketName != "thumbnail") {
+            createdThumbnail = await uploadImage(file, headers, res, 512, 360, "thumbnail");
+        }
+
         await saveFileData({
             fileID: uuid,
             userID: headers.userID,
@@ -31,7 +38,8 @@ async function uploadImage(file, headers, res) {
             fileExtension: extension,
             fileType: "image",
             interactCdnURL: `/static/${newFileName}`,
-            interactCdnBucket: imageInteractBucket
+            interactCdnBucket: bucketName,
+            thumbnailURL: createdThumbnail ? createdThumbnail.cdnURL : null
         });
 
         res.send({ success: true, fileID: newFileName, cdnURL: `/static/${newFileName}` });

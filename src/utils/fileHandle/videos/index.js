@@ -3,11 +3,13 @@ const path = require('path');
 const { exec } = require('child_process');
 const { minioClient } = require("../../minio");
 const { saveFileData } = require('../../saveMongo');
+const { uploadImage } = require('../uploadFile');
 const videoInteractBucket = "interact-videos";
 
 async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, originalFilename) {
     // const fileStream = fs.createReadStream(filePath);
     const tempFilePath = path.join("/tmp/uploads", `resized_${fileName}`);
+    const imagePath = path.join("/tmp/uploads", `${fileName}_thumbnail.jpg`);
     // const oldX = fileStream.
 
     // const newX = ÷
@@ -27,6 +29,7 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
 
     try {
         const resizeCommand = `ffmpeg -i ${filePath} -vf "scale=${newX}:${newY}" -c:a copy ${tempFilePath}`;
+        const thumbnailCommand = ` ffmpeg -i ${tempFilePath} -ss 00:00:05 -vframes 1 -vf "scale=512:-1" -q:v 2 ${imagePath}`;
 
         // Run the FFmpeg command to resize the video
         const FFmpegRun = await new Promise((resolve, reject) => {
@@ -39,6 +42,17 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
                 resolve(stdout);
             });
         });
+
+        const generateThumbnail = await new Promise((resolve, reject) => {
+            exec(thumbnailCommand, (err) => {
+                if (err) {
+                    console.log("failed to thumbnail" + err)
+                    return reject(err);
+                }
+            });
+        });
+
+        const thumbnailSaved = await uploadImage(imagePath, headers, res, 512, 360, "thumbnail");
 
         const stats = await new Promise((resolve, reject) => {
             fs.stat(tempFilePath, (err, stats) => {
@@ -70,7 +84,8 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
             fileExtension: fileName.split(".").pop(),
             fileType: "video",
             interactCdnURL: `/static/${fileName}`,
-            interactCdnBucket: videoInteractBucket
+            interactCdnBucket: videoInteractBucket,
+            thumbnailURL: thumbnailSaved ? thumbnailSaved.cdnURL : null
         });
 
         res.send({ success: true, fileID: fileName, cdnURL: `/static/${fileName}` });

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqBool, reqNum, reqString } = require('../types');
+const { reqBool, reqNum, reqString, nonreqString } = require('../types');
 
 const interactCdnFile = mongoose.Schema({
     _id: reqString,  // UUID
@@ -10,7 +10,9 @@ const interactCdnFile = mongoose.Schema({
     extension: reqString,
     type: reqString,
     cdnURL: reqString,
-    cdnBucket: reqString
+    cdnBucket: reqString,
+    thumbnailURL: nonreqString,
+    isThumbnail: reqBool
 });
 
 module.exports = mongoose.model('interact-cdn-file', interactCdnFile);

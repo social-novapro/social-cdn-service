@@ -17,7 +17,8 @@ async function getFileInfo(headers, fileID) {
         timestamp: foundFile.timestamp,
         extension: foundFile.extension,
         type: foundFile.type,
-        cdnURL: foundFile.cdnURL
+        cdnURL: foundFile.cdnURL,
+        thumbnailURL: foundFile.thumbnailURL ? foundFile.thumbnailURL : null,
     }
 }
 
