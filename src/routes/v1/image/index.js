@@ -8,13 +8,13 @@ const { getFile } = require('../../../utils/fileHandle/getFile');
 const imageUpload = multer({ storage: multer.memoryStorage() });
 
 router.post('/', imageUpload.single('file'), async (req, res) => {
-    const headers = reqToHeaders(req);
+    const headers = reqToHeaders(req.headers);
     await uploadImage(req.file, headers, res);
 });
 
 router.get('/:fileID', async (req, res) => {
     const fileID = req.params.fileID;
-    const headers = reqToHeaders(req);
+    const headers = reqToHeaders(req.headers);
 
     await getFile(fileID, headers, 'interact-images', res);
 });

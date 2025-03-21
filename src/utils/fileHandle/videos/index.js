@@ -49,11 +49,16 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
                     console.log("failed to thumbnail" + err)
                     return reject(err);
                 }
+
+                resolve();
             });
         });
 
-        const thumbnailSaved = await uploadImage(imagePath, headers, res, 512, 360, "thumbnail");
 
+        const imageBuffer = await fs.promises.readFile(imagePath);
+        const fileObject = { buffer: imageBuffer, originalname: `${fileName}_thumbnail.jpg` };
+        const thumbnailSaved = await uploadImage(fileObject, headers, res, 512, 360, "thumbnail");
+        
         const stats = await new Promise((resolve, reject) => {
             fs.stat(tempFilePath, (err, stats) => {
                 console.log("failed to stat" + err)
@@ -88,7 +93,7 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
             thumbnailURL: thumbnailSaved ? thumbnailSaved.cdnURL : null
         });
 
-        res.send({ success: true, fileID: fileName, cdnURL: `/static/${fileName}` });
+        res.send({ success: true, fileID: fileName, cdnURL: `/static/${fileName}`, thumbnailURL: thumbnailSaved ? thumbnailSaved.cdnURL : null });
     } catch (err) {
         res.status(500).send({ error: err.message });
     }

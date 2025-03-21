@@ -42,11 +42,13 @@ async function uploadImage(file, headers, res, sizeX=1920, sizeY=1080, bucketNam
             thumbnailURL: createdThumbnail ? createdThumbnail.cdnURL : null
         });
 
-        res.send({ success: true, fileID: newFileName, cdnURL: `/static/${newFileName}` });
+        if (bucketName != "thumbnail" ) return res.send({ success: true, fileID: newFileName, cdnURL: `/static/${newFileName}`, thumbnailURL: createdThumbnail ? createdThumbnail.cdnURL : null });
+        else return { success: true, fileID: newFileName, cdnURL: `/static/${newFileName}` };
     } catch (err) {
         console.log("Error uploading image:", err);
 
-        res.status(500).send({ error: "Error uploading image, please try again later." });
+        if (bucketName != "thumbnail" ) return res.status(500).send({ error: "Error uploading image, please try again later." });
+        else return { error: "Error uploading image, please try again later." };
     }
 }
 

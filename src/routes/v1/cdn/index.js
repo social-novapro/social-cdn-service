@@ -3,6 +3,7 @@ const router = require('express').Router();
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const aws4 = require('aws4');
 const { verifyFile } = require('../../../utils/fileHandle/verifyFile');
+const { getFileInfo } = require('../../../utils/fileInfo');
 require('dotenv').config();
 
 // Middleware to add MinIO authentication
@@ -80,8 +81,12 @@ router.use("/:fileID", async (req, res, next) => {
     if (fileType.error) {
         return res.status(500).send(fileType);
     }
-    req.headers = signAccess(req.headers, `/interact-${fileType.type}s/${req.params.fileID}`);
-    req.bucket = `interact-${fileType.type}s`;
+    const foundFile = await getFileInfo(req.headers, req.params.fileID, true);
+    if (foundFile.error) {
+        return res.status(foundFile.status).json({ error: true, message: foundFile.message });
+    }
+    req.headers = signAccess(req.headers, `/${foundFile.cdnBucket}/${foundFile.name}`);
+    req.bucket = foundFile.cdnBucket;
     next();
 }, (req, res, next) => proxyWithAuth(req.bucket)(req, res, next));
 

@@ -4,7 +4,7 @@ const { reqToHeaders } = require('../../../utils/reqToHeaders');
 const router = require('express').Router();
 
 router.get('/:fileID', async (req, res) => {
-    const headers = reqToHeaders(req);
+    const headers = reqToHeaders(req.headers);
     const foundFile = await getFileInfo(headers, req.params.fileID);
     console.log(foundFile)
     if (foundFile.error) {

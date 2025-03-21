@@ -1,10 +1,10 @@
-function reqToHeaders(req) {
+function reqToHeaders(reqHeaders) {
     const headers = {
-        userID: req.headers.userid ?? null,
-        userToken: req.headers.usertoken ?? null,
-        accessToken: req.headers.accesstoken ?? null,
-        appToken: req.headers.apptoken ?? null,
-        devToken: req.headers.devtoken ?? null
+        userID: reqHeaders.userid ?? null,
+        userToken: reqHeaders.usertoken ?? null,
+        accessToken: reqHeaders.accesstoken ?? null,
+        appToken: reqHeaders.apptoken ?? null,
+        devToken: reqHeaders.devtoken ?? null
     }
 
     return headers;

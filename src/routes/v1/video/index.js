@@ -48,7 +48,7 @@ function getVideoResolution(filePath) {
 router.post('/', videoUpload.single('file'), async (req, res) => {
     const filePath = req.file.path;
     const fileName = req.file.filename;
-    const headers = reqToHeaders(req);
+    const headers = reqToHeaders(req.headers);
 
     console.log(filePath, fileName);
 

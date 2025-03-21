@@ -3,7 +3,7 @@ const { reqToHeaders } = require('../../../utils/reqToHeaders');
 const { verifyFile } = require('../../../utils/fileHandle/verifyFile');
 
 router.get('/:fileName', (req, res) => {
-    const headers = reqToHeaders(req);
+    const headers = reqToHeaders(req.headers);
     const fileType = verifyFile(req.params.fileName);
     console.log(fileType);
     if (fileType.error) {
