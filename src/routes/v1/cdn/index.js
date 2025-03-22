@@ -8,7 +8,7 @@ require('dotenv').config();
 
 // Middleware to add MinIO authentication
 const proxyWithAuth = (bucket) => createProxyMiddleware({
-    target: "http://localhost:9000",
+    target: `http://${process.env.MINIOAPI_URL}:9000`,
     changeOrigin: true,
     pathRewrite: (path, req) => `/${bucket}/${req.params.fileID}`,
     onProxyReq: (proxyReq, req, res) => {
@@ -37,12 +37,12 @@ function signAccess(headers, filePath) {
     // Generate AWS Signature v4 headers
     const opts = {
         method: "GET",
-        host: 'localhost:9000',
+        host: `${process.env.MINIOAPI_URL}:9000`,
         path: filePath,
         service: 's3',
         region: 'us-east-1',
         headers: {
-            Host: 'localhost:9000',
+            Host: `${process.env.MINIOAPI_URL}:9000`,
         },
     };
 

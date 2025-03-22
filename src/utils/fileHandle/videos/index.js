@@ -6,6 +6,18 @@ const { saveFileData } = require('../../saveMongo');
 const { uploadImage } = require('../uploadFile');
 const videoInteractBucket = "interact-videos";
 
+// Function to get video duration using ffprobe
+async function getVideoDuration(filePath) {
+    return new Promise((resolve, reject) => {
+        exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${filePath}`, (err, stdout, stderr) => {
+            if (err) {
+                return reject(new Error(`Error getting video duration: ${stderr || err.message}`));
+            }
+            resolve(parseFloat(stdout));
+        });
+    });
+}
+
 async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, originalFilename) {
     // const fileStream = fs.createReadStream(filePath);
     const tempFilePath = path.join("/tmp/uploads", `resized_${fileName}`);
@@ -29,7 +41,6 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
 
     try {
         const resizeCommand = `ffmpeg -i ${filePath} -vf "scale=${newX}:${newY}" -c:a copy ${tempFilePath}`;
-        const thumbnailCommand = ` ffmpeg -i ${tempFilePath} -ss 00:00:05 -vframes 1 -vf "scale=512:-1" -q:v 2 ${imagePath}`;
 
         // Run the FFmpeg command to resize the video
         const FFmpegRun = await new Promise((resolve, reject) => {
@@ -43,17 +54,23 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
             });
         });
 
-        const generateThumbnail = await new Promise((resolve, reject) => {
-            exec(thumbnailCommand, (err) => {
-                if (err) {
-                    console.log("failed to thumbnail" + err)
-                    return reject(err);
-                }
+        const duration = await getVideoDuration(tempFilePath);
+        const thumbnailTime = Math.min(5, duration / 2); // Use half the duration if the video is shorter than 5 seconds
+        const thumbnailCommand = `ffmpeg -i ${tempFilePath} -ss 00:00:${thumbnailTime} -vframes 1 -vf "scale=512:-1" -q:v 2 ${imagePath}`;
 
+        // Run the FFmpeg command to generate the thumbnail
+        const generateThumbnail = await new Promise((resolve, reject) => {
+            exec(thumbnailCommand, (err, stdout, stderr) => {
+                if (err) {
+                    console.log("Failed to exec thumbnail command: " + err);
+                    console.log("FFmpeg stderr: " + stderr);
+                    return reject(new Error(`Error generating thumbnail: ${stderr || err.message}`));
+                }
+                console.log(stdout);
+                console.log("Thumbnail generated");
                 resolve();
             });
         });
-
 
         const imageBuffer = await fs.promises.readFile(imagePath);
         const fileObject = { buffer: imageBuffer, originalname: `${fileName}_thumbnail.jpg` };

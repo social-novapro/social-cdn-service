@@ -29,6 +29,7 @@ function verifyFile(fileName, subType="any") {
         };
     } 
     const extension = fileName.split('.').pop();
+    console.log(fileName, extension);
     const typeMatch = allowedExtensions.find((allowedExtension) => {
         return allowedExtension.extension === extension;
     });
@@ -43,7 +44,7 @@ function verifyFile(fileName, subType="any") {
     if (subType != "any" && typeMatch.subType != subType) {
         return {
             "error" : true,
-            "message" : "Invalid file type"
+            "message" : "Not matching type"
         };
     }
 
