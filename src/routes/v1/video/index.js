@@ -35,7 +35,7 @@ function getVideoResolution(filePath) {
                         width: videoStream.width,
                         height: videoStream.height
                     };
-                    console.log('Video resolution:', resolution);
+
                     resolve(resolution);
                 } else {
                     reject(new Error('No video stream found'));
@@ -50,23 +50,10 @@ router.post('/', videoUpload.single('file'), async (req, res) => {
     const fileName = req.file.filename;
     const headers = reqToHeaders(req.headers);
 
-    console.log(filePath, fileName);
-
-    const fileRes = {
-        allowed: true,
-        uuid: UUIDv4(),
-        originalFilename: req.file.originalname,
-        extension: req.file.originalname.split('.').pop(),
-        xSize: req.file.size
-    }
-    console.log(fileRes);
-
     const resolution = await getVideoResolution(filePath);
     try {
         await uploadVideoToMinio(filePath, fileName, res, resolution, headers, req.file.originalname);
     } catch (err) {
-        console.log("err:" + err);
-        console.log("Error uploading video:", err);
         res.status(500).send({ error: "Could not upload video, please try again later." });
     }
 });
@@ -74,7 +61,6 @@ router.post('/', videoUpload.single('file'), async (req, res) => {
 router.get('/:fileID', async (req, res) => {
     const fileID = req.params.fileID;
     const range = req.headers.range;
-    console.log("Request Headers:", req.headers);
 
     if (!range) {
         console.log("No range given");
@@ -100,8 +86,6 @@ router.get('/:fileID', async (req, res) => {
         end = Math.min(end, fileSize - 1); // Ensure end is within bounds
         const contentLength = end - start + 1;
         const type = mime.lookup(fileID) || 'video/mp4';
-
-        console.log(`Serving ${fileID}: ${start}-${end}/${fileSize}`);
 
         res.writeHead(206, {
             "Content-Range": `bytes ${start}-${end}/${fileSize}`,

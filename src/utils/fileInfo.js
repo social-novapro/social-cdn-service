@@ -14,6 +14,10 @@ async function getFileInfo(headers, fileID, full=false) {
 
     if (full) {
         return foundFile;
+    } else {
+        // increase views
+        foundFile.views ? foundFile.views += 1 : foundFile.views = 1;
+        await foundFile.save();
     }
     
     return {
@@ -23,6 +27,7 @@ async function getFileInfo(headers, fileID, full=false) {
         type: foundFile.type,
         cdnURL: foundFile.cdnURL,
         thumbnailURL: foundFile.thumbnailURL ? foundFile.thumbnailURL : null,
+        views: foundFile.views ?? 0,
     }
 }
 

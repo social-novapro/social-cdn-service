@@ -24,6 +24,7 @@ async function saveFileData({
         cdnBucket: interactCdnBucket,
         thumbnailURL: thumbnailURL || null,
         isThumbnail: thumbnailURL ? true : false,
+        views: 0,
     });
 
     return saveFile;

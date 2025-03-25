@@ -77,7 +77,6 @@ router.use("/image/:fileID", async (req, res, next) => {
 router.use("/:fileID", async (req, res, next) => {
     console.log("Proxy middleware running for file...");
     const fileType = verifyFile(req.params.fileID);
-    console.log(fileType);
     if (fileType.error) {
         return res.status(500).send(fileType);
     }

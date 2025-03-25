@@ -12,7 +12,8 @@ const interactCdnFile = mongoose.Schema({
     cdnURL: reqString,
     cdnBucket: reqString,
     thumbnailURL: nonreqString,
-    isThumbnail: reqBool
+    isThumbnail: reqBool,
+    views: reqNum,
 });
 
 module.exports = mongoose.model('interact-cdn-file', interactCdnFile);

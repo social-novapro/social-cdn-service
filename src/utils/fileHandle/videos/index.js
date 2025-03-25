@@ -49,7 +49,6 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
                     console.log("failed to exec" + err)
                     return reject(new Error(`Error resizing video: ${stderr || err.message}`));
                 }
-                console.log(stdout);
                 resolve(stdout);
             });
         });
@@ -66,8 +65,6 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
                     console.log("FFmpeg stderr: " + stderr);
                     return reject(new Error(`Error generating thumbnail: ${stderr || err.message}`));
                 }
-                console.log(stdout);
-                console.log("Thumbnail generated");
                 resolve();
             });
         });
@@ -79,7 +76,9 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
         const stats = await new Promise((resolve, reject) => {
             fs.stat(tempFilePath, (err, stats) => {
                 console.log("failed to stat" + err)
-                if (err) return reject(err);
+                if (err) {
+                    return reject(err);
+                }
                 resolve(stats);
             });
         });
@@ -91,9 +90,10 @@ async function uploadVideoToMinio(filePath, fileName, res, metadata, headers, or
             minioClient.putObject(videoInteractBucket, fileName, fileStream, stats.size, (err, etag) => {
                 fs.unlink(tempFilePath, () => {}); // Delete resized video file
                 fs.unlink(filePath, () => {}); // Delete original video file
-                console.log("failed to minio" + err)
-                if (err) return reject(err);
-                console.log("File uploaded to MinIO:", etag);
+                if (err) {
+                    console.log("failed to put object to minio" + err)
+                    return reject(err);
+                }
                 resolve(etag);
             });
         });

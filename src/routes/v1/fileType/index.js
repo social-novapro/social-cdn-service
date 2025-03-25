@@ -5,7 +5,7 @@ const { verifyFile } = require('../../../utils/fileHandle/verifyFile');
 router.get('/:fileName', (req, res) => {
     const headers = reqToHeaders(req.headers);
     const fileType = verifyFile(req.params.fileName);
-    console.log(fileType);
+
     if (fileType.error) {
         return res.status(500).send(fileType);
     }
