@@ -31,7 +31,7 @@ function verifyFile(fileName, subType="any") {
     const extension = fileName.split('.').pop();
 
     const typeMatch = allowedExtensions.find((allowedExtension) => {
-        return allowedExtension.extension === extension;
+        return allowedExtension.extension === extension.toLowerCase();
     });
     
     if (!typeMatch) {
